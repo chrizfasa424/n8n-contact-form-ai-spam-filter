@@ -1,5 +1,12 @@
 # n8n Contact Form AI Spam Filter
 
+## Workflow Architecture
+
+The diagram below shows the complete n8n workflow used to process website contact form submissions, detect spam using AI, add server-side timestamps, and store results in Google Sheets.
+
+![n8n Workflow Architecture](./workflow.png)
+
+
 This repository contains a **fully implemented n8n automation workflow** designed to filter website contact form submissions using **AI-powered spam detection** and automatically store results in **Google Sheets**.
 
 The workflow was **designed, configured, tested, and documented end-to-end** as a practical automation project for handling real-world lead generation challenges.
