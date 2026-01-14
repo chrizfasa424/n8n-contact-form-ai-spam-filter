@@ -1,0 +1,333 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": " Project Inquiry",
+        "formDescription": "A form that captures email and message from a potential client",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "placeholder": "Enter your email here",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Message",
+              "placeholder": " Enter your project enquiry here"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "98fb8998-b300-4390-ba88-4ff17e01a7e4",
+      "name": "On form submission",
+      "webhookId": "56e689ee-540d-4907-95da-3f9d7b36ad35"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "76d0198f-485e-4234-9f74-2ff1a0bf8dd6",
+              "leftValue": "={{ $json.Message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "d6599086-d97c-4054-a567-e6c28d0af142",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a spam filter, you will receive submission from the lead-gen form and you will have to check whether or not the submissions are spam, or legitimate enquiries. The lead-gen form is a project inquiry form for our web development agency\n\nEverything which is not a request or question related to our business should be categorized as spam. If someone says a test message, then it's a spam.\n\nAdditionally, if you detect dummy emails like \"mail@example.org\", this falls under spam bucket\n\nYour task is to respond with a \"yes\" if it is spam, and \"no\" if it is legitimate\n\nDo not explain yourself, do not add any additional text or output, only respond with a single word: \"yes\" (if the submission is spam), \"no\" (if it is legitimate inquiry)"
+            },
+            {
+              "content": "=Email: {{ $json.Email }}\nMessage: {{ $json.Message }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        0
+      ],
+      "id": "e8982046-3e4b-4cce-9615-baee9df691a8",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "uGIvuWx18AduokJg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2d2e1bd1-1641-4f1f-9774-85f41e3f8e0c",
+              "leftValue": "={{ $json.output[0].content[0].text }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        0
+      ],
+      "id": "69de66cb-d26e-4f7a-a3a8-b1a6a759f21d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU",
+          "mode": "list",
+          "cachedResultName": "Lead Enquiry Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1249834366,
+          "mode": "list",
+          "cachedResultName": "Spam",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU/edit#gid=1249834366"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email ": "={{ $('On form submission').item.json.Email }}",
+            "Message": "={{ $('On form submission').item.json.Message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Email ",
+              "displayName": "Email ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "dbd94bdc-d162-4f6c-9b06-7c0d78fc85f9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ix91ke3jzsEjFYUJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU",
+          "mode": "list",
+          "cachedResultName": "Lead Enquiry Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Genuine",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zH2TcOgMEp9zhex8zgz9jml77WXifYv02mQRF9_r5vU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "EMAIL": "={{ $('On form submission').item.json.Email }}",
+            "MESSAGE": "={{ $('On form submission').item.json.Message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MESSAGE",
+              "displayName": "MESSAGE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        96
+      ],
+      "id": "79437aac-4b10-4c74-8b88-44d05c9acf67",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FErSyzJbfk5aWsMI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "74b7bec7-fe68-428a-93e5-c92f37005355",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fe7c04a6d9bddfd995d025d606ca5f4e03103104f806b6d8a3af1c9b5fd46172"
+  },
+  "id": "V5YzkhxfPWke3R49bl_ET",
+  "tags": []
+}
