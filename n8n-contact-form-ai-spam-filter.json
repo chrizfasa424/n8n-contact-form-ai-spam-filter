@@ -24,8 +24,8 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
       "position": [
-        -384,
-        0
+        -944,
+        -16
       ],
       "id": "98fb8998-b300-4390-ba88-4ff17e01a7e4",
       "name": "On form submission",
@@ -59,48 +59,11 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        -128,
-        0
+        -688,
+        -16
       ],
       "id": "d6599086-d97c-4054-a567-e6c28d0af142",
-      "name": "Filter"
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-4.1-mini",
-          "mode": "list",
-          "cachedResultName": "GPT-4.1-MINI"
-        },
-        "responses": {
-          "values": [
-            {
-              "role": "system",
-              "content": "You are a spam filter, you will receive submission from the lead-gen form and you will have to check whether or not the submissions are spam, or legitimate enquiries. The lead-gen form is a project inquiry form for our web development agency\n\nEverything which is not a request or question related to our business should be categorized as spam. If someone says a test message, then it's a spam.\n\nAdditionally, if you detect dummy emails like \"mail@example.org\", this falls under spam bucket\n\nYour task is to respond with a \"yes\" if it is spam, and \"no\" if it is legitimate\n\nDo not explain yourself, do not add any additional text or output, only respond with a single word: \"yes\" (if the submission is spam), \"no\" (if it is legitimate inquiry)"
-            },
-            {
-              "content": "=Email: {{ $json.Email }}\nMessage: {{ $json.Message }}\n"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
-      "position": [
-        80,
-        0
-      ],
-      "id": "e8982046-3e4b-4cce-9615-baee9df691a8",
-      "name": "Message a model",
-      "credentials": {
-        "openAiApi": {
-          "id": "uGIvuWx18AduokJg",
-          "name": "OpenAi account"
-        }
-      }
+      "name": "Empty Message Filte"
     },
     {
       "parameters": {
@@ -129,11 +92,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        432,
+        400,
         0
       ],
       "id": "69de66cb-d26e-4f7a-a3a8-b1a6a759f21d",
-      "name": "If"
+      "name": "Is Spam?"
     },
     {
       "parameters": {
@@ -156,7 +119,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "Email ": "={{ $('On form submission').item.json.Email }}",
-            "Message": "={{ $('On form submission').item.json.Message }}"
+            "Message": "={{ $('On form submission').item.json.Message }}",
+            "Timestamp": "={{ new Date().toISOString().trim() }}\n"
           },
           "matchingColumns": [],
           "schema": [
@@ -177,6 +141,16 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -187,11 +161,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        640,
-        -96
+        752,
+        -160
       ],
       "id": "dbd94bdc-d162-4f6c-9b06-7c0d78fc85f9",
-      "name": "Append row in sheet",
+      "name": "Spam Sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "ix91ke3jzsEjFYUJ",
@@ -220,7 +194,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "EMAIL": "={{ $('On form submission').item.json.Email }}",
-            "MESSAGE": "={{ $('On form submission').item.json.Message }}"
+            "MESSAGE": "={{ $('On form submission').item.json.Message }}",
+            "Timestamp": "={{ new Date().toISOString().trim() }}\n\n"
           },
           "matchingColumns": [],
           "schema": [
@@ -241,6 +216,16 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -251,17 +236,78 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        640,
-        96
+        784,
+        176
       ],
       "id": "79437aac-4b10-4c74-8b88-44d05c9acf67",
-      "name": "Append row in sheet1",
+      "name": "Genuine Enquiries",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "FErSyzJbfk5aWsMI",
           "name": "Google Sheets account 2"
         }
       }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a spam filter, you will receive submission from the lead-gen form and you will have to check whether or not the submissions are spam, or legitimate enquiries. The lead-gen form is a project inquiry form for our web development agency\n\nEverything which is not a request or question related to our business should be categorized as spam. If someone says a test message, then it's a spam.\n\nAdditionally, if you detect dummy emails like \"mail@example.org\", this falls under spam bucket\n\nYour task is to respond with a \"yes\" if it is spam, and \"no\" if it is legitimate\n\nDo not explain yourself, do not add any additional text or output, only respond with a single word: \"yes\" (if the submission is spam), \"no\" (if it is legitimate inquiry)"
+            },
+            {
+              "content": "=Email: {{ $json.Email }}\nMessage: {{ $json.Message }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        -144
+      ],
+      "id": "e8982046-3e4b-4cce-9615-baee9df691a8",
+      "name": "AI Spam Checker",
+      "credentials": {
+        "openAiApi": {
+          "id": "uGIvuWx18AduokJg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1daf37ad-7fa1-4469-a2af-b5d210e91ff0",
+              "name": "timestamp ",
+              "value": "={{ new Date().toISOString() }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        -16
+      ],
+      "id": "c9d34a88-9063-4df9-b6ac-f55b436c6c60",
+      "name": "Timestamp"
     }
   ],
   "pinData": {},
@@ -270,47 +316,68 @@
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "Empty Message Filte",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter": {
+    "Empty Message Filte": {
       "main": [
         [
           {
-            "node": "Message a model",
+            "node": "AI Spam Checker",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Message a model": {
+    "Is Spam?": {
       "main": [
         [
           {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Append row in sheet",
+            "node": "Spam Sheet",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Append row in sheet1",
+            "node": "Genuine Enquiries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Spam Checker": {
+      "main": [
+        [
+          {
+            "node": "Timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spam Sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Genuine Enquiries": {
+      "main": [
+        []
+      ]
+    },
+    "Timestamp": {
+      "main": [
+        [
+          {
+            "node": "Is Spam?",
             "type": "main",
             "index": 0
           }
@@ -323,7 +390,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "74b7bec7-fe68-428a-93e5-c92f37005355",
+  "versionId": "677904c3-4f60-44d2-9d64-6008f03145b1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fe7c04a6d9bddfd995d025d606ca5f4e03103104f806b6d8a3af1c9b5fd46172"
